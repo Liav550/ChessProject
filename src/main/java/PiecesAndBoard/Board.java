@@ -12,9 +12,10 @@ public class Board extends JFrame implements MouseListener{
     private Square[][] board; // representing the view of the board
     private Square sourceSquare = null; // this is for saving the source of the piece we want to move
     private boolean colorToPlay = true;
+    public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
     public Board(){
-        board = new Square[8][8]; // initializing
+        board = new Square[8][8]; // initializing the body of the board
 
         // setting up the frame's properties
         setTitle("Game on! ");
@@ -29,37 +30,40 @@ public class Board extends JFrame implements MouseListener{
         boolean color;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                color = (i+j)%2 == 0;
+                color = (i+j)%2 == 0; // the color of each square depends on the sum of it's indexes divided by 2.
                 board[i][j] = new Square(color, i,j);
-                board[i][j].addMouseListener(this);
-                add(board[i][j]);
+                board[i][j].addMouseListener(this); // adding a mouse listener for each square
+                add(board[i][j]); // adding the square to the board
             }
         }
-        setBoardByFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-        setVisible(true);
+        setBoardByFEN(STARTING_POSITION); // setting the starting position by using FEN
+        setVisible(true); // show the board on the screen
     }
+
+
+    // This method loads the board according to a FEN string
     public void setBoardByFEN(String fen){
-        int len = fen.length();
-        int currentX = 0;
-        int currentY = 0;
-        boolean color;
-        char currentChar;
+        int len = fen.length(); // the length of the FEN string
+        int currentX = 0; // the x dimension of the current square we are iterating through according to the FEN string
+        int currentY = 0; // the y dimension of the current square we are iterating through according to the FEN string
+        boolean color; // the color of the piece we will put on the square
+        char currentChar; // the Character we are iterating through
         for (int i = 0; i < len; i++) {
-            if(currentY <= 7){
-                currentChar = fen.charAt(i);
-                if(Character.isDigit(currentChar)){
-                    currentX+= Character.getNumericValue(currentChar);
-                }
-                else if(Character.isLetter(currentChar)) {
-                    color = Character.isUpperCase(currentChar);
-                    board[currentX][currentY].setPieceOccupying
-                            (PieceFactory.buildPiece(Character.toLowerCase(currentChar),color));
-                    currentX++;
-                }
-                else{
-                    currentY++;
-                    currentX = 0;
-                }
+            currentChar = fen.charAt(i); // load the current character
+            if(Character.isDigit(currentChar)){ // if the character is a digit:
+                currentX+= Character.getNumericValue(currentChar); // we go "currentX" to our right,
+                                                                   // and go to the next piece
+            }
+            else if(Character.isLetter(currentChar)) { // if the character is a letter:
+                color = Character.isUpperCase(currentChar); // getting the color of the piece by the type of the letter
+                board[currentX][currentY].setPieceOccupying
+                        (PieceFactory.buildPiece(Character.toLowerCase(currentChar),color)); // build the correct piece
+                                                                                             // to the current square
+                currentX++; // continue to the next file on the same row
+            }
+            else{ // if we reached here, it means we have the '/' sign, which means to skip to the next row
+                currentY++; // skip the row
+                currentX = 0; // start scanning from column 0
             }
         }
     }
@@ -75,6 +79,8 @@ public class Board extends JFrame implements MouseListener{
                 sourceSquare = null;
                 return;
             }
+            MoveValidator validator = new MoveValidator(board, new Move(sourceSquare,board[0][0],colorToPlay));
+            validator.highlightPossibleMoves();
         }
         else{
             Square destinationSquare = (Square) e.getSource();
@@ -84,6 +90,7 @@ public class Board extends JFrame implements MouseListener{
                 move.makeMove();
                 colorToPlay = !colorToPlay;
             }
+            moveValidator.turnOffHighlight();
             sourceSquare = null;
             revalidate();
             repaint();

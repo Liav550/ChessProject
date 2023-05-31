@@ -1,9 +1,6 @@
 package moveValidation;
 
-import PiecesAndBoard.Knight;
-import PiecesAndBoard.Pawn;
-import PiecesAndBoard.Piece;
-import PiecesAndBoard.Square;
+import PiecesAndBoard.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -11,12 +8,11 @@ import java.util.ArrayList;
 public class MoveValidator {
     private Square[][] board;
     private Move move;
-
-    public static final Color COLOR_OF_POSSIBLE_MOVES = new Color(255, 245, 150);
     public MoveValidator(Square[][] board, Move move){
         this.board = board;
         this.move = move;
     }
+
 
     private boolean inBounds(int x, int y){
         return  x>=0 && x<=7 && y>=0 && y<=7;
@@ -43,7 +39,7 @@ public class MoveValidator {
             return false;
         }
         // here we make the move, and check if it exposes a check on our king.
-        // if it does, we will undo the move. returning false here is temporary!!!
+        // if it does, we will undo the move.
         move.makeMove();
         CheckValidator checkValidator = new CheckValidator(move.getTurn(), board);
         if(checkValidator.isInCheck()){
@@ -52,6 +48,18 @@ public class MoveValidator {
         }
         move.undoMove();
         return true;
+    }
+    private ArrayList<Move> deleteIfIllegal(ArrayList<Move> moves){
+        if(moves==null){return null;}
+        MoveValidator validatePossibleMoves;
+        ArrayList<Move> ret = new ArrayList<>();
+        for(Move m: moves){
+            validatePossibleMoves = new MoveValidator(board, m);
+            if(validatePossibleMoves.isAbleToMove()){
+                ret.add(m);
+            }
+        }
+        return ret;
     }
 
     private ArrayList<Move> getPawnLegalMoves(){
@@ -80,7 +88,6 @@ public class MoveValidator {
                 moves.add(new Move(sourceSquare,board[xSource-1][ySource+ turnMul],move.getTurn()));
             }
         }
-        pawnOnSource.setIsInStartingPosition(false);
         return moves;
     }
     private ArrayList<Move> getKnightLegalMoves(){
@@ -125,12 +132,15 @@ public class MoveValidator {
         int yCurrent = start.getYOnBoard()+advanceY;
         while(inBounds(xCurrent,yCurrent)){
             start = board[xCurrent][yCurrent];
-            if(start.getPieceOccupying() == null || start.getPieceOccupying().getPieceColor() != move.getTurn()){
+            if(start.getPieceOccupying() == null){
                 moves.add(new Move(move.getSource(),start,move.getTurn()));
                 xCurrent+=advanceX;
                 yCurrent+=advanceY;
             }
             else{
+                if(start.getPieceOccupying().getPieceColor() != move.getTurn()){
+                    moves.add(new Move(move.getSource(),start,move.getTurn()));
+                }
                 return moves;
             }
         }
@@ -165,6 +175,30 @@ public class MoveValidator {
         return bishopDirections;
     }
 
+    private ArrayList<Move> getKingLegalMoves(){
+        ArrayList<Move> moves = new ArrayList<>();
+        int[] directions = new int[]{1,0,-1};
+        Square squareChecked;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if(i==1 && j==1){
+                    continue;
+                }
+                if(inBounds(move.getSource().getXOnBoard()+ directions[i],
+                            move.getSource().getYOnBoard()+directions[j])){
+                    squareChecked = board[move.getSource().getXOnBoard()+ directions[i]]
+                                         [move.getSource().getYOnBoard()+directions[j]];
+                    if(squareChecked.getPieceOccupying() != null &&
+                            squareChecked.getPieceOccupying().getPieceColor() == move.getTurn()){
+                        continue;
+                    }
+                    moves.add(new Move(move.getSource(),squareChecked,move.getTurn()));
+                }
+            }
+        }
+        return moves;
+    }
+
     private ArrayList<Move> getListOfPossibleMoves(char pieceType){
         ArrayList<Move> movesForPiece=null;
         if(move.getSource().getPieceOccupying().getPieceType() == 'p'){
@@ -179,19 +213,50 @@ public class MoveValidator {
         else if(move.getSource().getPieceOccupying().getPieceType() == 'r'){
             movesForPiece = getRookLegalMoves();
         }
+        else if(move.getSource().getPieceOccupying().getPieceType() == 'k'){
+            movesForPiece = getKingLegalMoves();
+        }
         else{
             movesForPiece = getQueenLegalMoves();
         }
+        movesForPiece = deleteIfIllegal(movesForPiece);
         return movesForPiece;
     }
-    public boolean isLegalMove(){
-        if(!isAbleToMove()){
+    public boolean isLegalMove() {
+        if (!isAbleToMove()) {
             return false;
         }
         boolean ret;
         char pieceType = move.getSource().getPieceOccupying().getPieceType();
         ArrayList<Move> movesForPiece = getListOfPossibleMoves(pieceType);
-        ret= isMoveInList(movesForPiece);
+        ret = isMoveInList(movesForPiece);
+        Piece pieceOnSquare = move.getSource().getPieceOccupying();
+        if (ret && pieceType == 'p') {
+            ((Pawn)pieceOnSquare).setIsInStartingPosition(false);
+        }
+        else if(ret && pieceType == 'k'){
+            ((King)pieceOnSquare).setHasMoved(true);
+        }
+        else if(ret && pieceType == 'r'){
+            ((Rook)pieceOnSquare).setHasMoved(true);
+        }
         return ret;
+    }
+
+    public void highlightPossibleMoves(){
+        ArrayList<Move> movesToHighlight = getListOfPossibleMoves(move.getSource().getPieceOccupying().getPieceType());
+        for(Move m: movesToHighlight){
+            m.getDestination().setBackground(Square.COLOR_OF_HIGHLIGHT);
+        }
+    }
+
+    public void turnOffHighlight(){
+        Color originalColor;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                originalColor = board[i][j].getSquareColor()? Square.COLOR_OF_FIRST_SIDE: Square.COLOR_OF_SECOND_SIDE;
+                board[i][j].setBackground(originalColor);
+            }
+        }
     }
 }

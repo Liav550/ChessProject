@@ -15,7 +15,7 @@ public class King extends Piece{
         this.hasMoved = hasMoved;
     }
 
-    public boolean HasMoved() {
+    public boolean getHasMoved() {
         return hasMoved;
     }
 }
