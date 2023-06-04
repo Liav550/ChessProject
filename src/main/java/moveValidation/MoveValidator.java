@@ -6,10 +6,8 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class MoveValidator {
-    private Square[][] board;
     private Move move;
-    public MoveValidator(Square[][] board, Move move){
-        this.board = board;
+    public MoveValidator(Move move){
         this.move = move;
     }
 
@@ -41,7 +39,7 @@ public class MoveValidator {
         // here we make the move, and check if it exposes a check on our king.
         // if it does, we will undo the move.
         move.makeMove();
-        CheckValidator checkValidator = new CheckValidator(move.getTurn(), board);
+        CheckValidator checkValidator = new CheckValidator(move.getTurn());
         if(checkValidator.isInCheck()){
             move.undoMove();
             return false;
@@ -54,7 +52,7 @@ public class MoveValidator {
         MoveValidator validatePossibleMoves;
         ArrayList<Move> ret = new ArrayList<>();
         for(Move m: moves){
-            validatePossibleMoves = new MoveValidator(board, m);
+            validatePossibleMoves = new MoveValidator(m);
             if(validatePossibleMoves.isAbleToMove()){
                 ret.add(m);
             }
@@ -69,23 +67,23 @@ public class MoveValidator {
         int ySource = sourceSquare.getYOnBoard();
         int turnMul = move.getTurn()? -1: 1;
         Pawn pawnOnSource = (Pawn)sourceSquare.getPieceOccupying();
-        if(board[xSource][ySource+ turnMul].getPieceOccupying() == null) {
-            moves.add(new Move(sourceSquare, board[xSource][ySource+ turnMul], move.getTurn()));
-            if(pawnOnSource.isInStartingPosition() && board[xSource][ySource+2*turnMul].getPieceOccupying() == null){
-                Move doubleMove = new Move(sourceSquare, board[xSource][ySource+2*turnMul], move.getTurn());
+        if(Board.board[xSource][ySource+ turnMul].getPieceOccupying() == null) {
+            moves.add(new Move(sourceSquare, Board.board[xSource][ySource+ turnMul], move.getTurn()));
+            if(pawnOnSource.isInStartingPosition() && Board.board[xSource][ySource+2*turnMul].getPieceOccupying() == null){
+                Move doubleMove = new Move(sourceSquare, Board.board[xSource][ySource+2*turnMul], move.getTurn());
                 moves.add(doubleMove);
             }
         }
         if(xSource!=7){
-            Piece diagonalPiece1 = board[xSource+1][ySource+ turnMul].getPieceOccupying();
+            Piece diagonalPiece1 = Board.board[xSource+1][ySource+ turnMul].getPieceOccupying();
             if(diagonalPiece1 != null && diagonalPiece1.getPieceColor() != move.getTurn()){
-                moves.add(new Move(sourceSquare,board[xSource+1][ySource+ turnMul],move.getTurn()));
+                moves.add(new Move(sourceSquare,Board.board[xSource+1][ySource+ turnMul],move.getTurn()));
             }
         }
         if(xSource != 0){
-            Piece diagonalPiece2 = board[xSource-1][ySource+ turnMul].getPieceOccupying();
+            Piece diagonalPiece2 = Board.board[xSource-1][ySource+ turnMul].getPieceOccupying();
             if(diagonalPiece2 != null && diagonalPiece2.getPieceColor() != move.getTurn()){
-                moves.add(new Move(sourceSquare,board[xSource-1][ySource+ turnMul],move.getTurn()));
+                moves.add(new Move(sourceSquare,Board.board[xSource-1][ySource+ turnMul],move.getTurn()));
             }
         }
         return moves;
@@ -105,19 +103,19 @@ public class MoveValidator {
                 xCurrent = xSource+oneOffset[i];
                 yCurrent = ySource+twoOffset[j];
                 if(inBounds(xCurrent,yCurrent)){
-                    pieceInSquaresChecked = board[xCurrent][yCurrent].getPieceOccupying();
+                    pieceInSquaresChecked = Board.board[xCurrent][yCurrent].getPieceOccupying();
                     if(pieceInSquaresChecked == null ||
                             pieceInSquaresChecked.getPieceColor() != pieceOnSource.getPieceColor()){
-                        moves.add(new Move(move.getSource(), board[xCurrent][yCurrent],move.getTurn()));
+                        moves.add(new Move(move.getSource(), Board.board[xCurrent][yCurrent],move.getTurn()));
                     }
                 }
                 xCurrent = xSource+twoOffset[i];
                 yCurrent = ySource+oneOffset[j];
                 if(inBounds(xCurrent,yCurrent)){
-                    pieceInSquaresChecked = board[xCurrent][yCurrent].getPieceOccupying();
+                    pieceInSquaresChecked = Board.board[xCurrent][yCurrent].getPieceOccupying();
                     if(pieceInSquaresChecked == null ||
                             pieceInSquaresChecked.getPieceColor() != pieceOnSource.getPieceColor()){
-                        moves.add(new Move(move.getSource(), board[xCurrent][yCurrent],move.getTurn()));
+                        moves.add(new Move(move.getSource(), Board.board[xCurrent][yCurrent],move.getTurn()));
                     }
                 }
             }
@@ -131,7 +129,7 @@ public class MoveValidator {
         int xCurrent = start.getXOnBoard()+advanceX;
         int yCurrent = start.getYOnBoard()+advanceY;
         while(inBounds(xCurrent,yCurrent)){
-            start = board[xCurrent][yCurrent];
+            start = Board.board[xCurrent][yCurrent];
             if(start.getPieceOccupying() == null){
                 moves.add(new Move(move.getSource(),start,move.getTurn()));
                 xCurrent+=advanceX;
@@ -175,6 +173,46 @@ public class MoveValidator {
         return bishopDirections;
     }
 
+    private boolean isCastleLegal(int direction){
+        CheckValidator checkValidator = new CheckValidator(move.getTurn());
+        if(checkValidator.isInCheck()){
+            return false;
+        }
+        if(((King)move.getSource().getPieceOccupying()).getHasMoved()){
+            return false;
+        }
+        int xSource = move.getSource().getXOnBoard();
+        int ySource = move.getSource().getYOnBoard();
+        if(Board.board[xSource+direction][ySource].getPieceOccupying() != null ||
+                Board.board[xSource+2*direction][ySource].getPieceOccupying() != null){
+            return false;
+        }
+        Move oneStepToDirection = new Move(move.getSource(), Board.board[xSource+direction][ySource], move.getTurn());
+        oneStepToDirection.makeMove();
+        checkValidator = new CheckValidator(move.getTurn());
+        if(checkValidator.isInCheck()){
+            oneStepToDirection.undoMove();
+            return false;
+        }
+        oneStepToDirection.undoMove();
+        int distanceToRook = direction==1? 3: -4;
+        Piece pieceOnCorner = Board.board[xSource+distanceToRook][ySource].getPieceOccupying();
+        if(pieceOnCorner == null){
+            return false;
+        }
+        if(pieceOnCorner.getPieceType() != 'r'){
+            return false;
+        }
+        if(pieceOnCorner.getPieceColor() != move.getTurn()){
+            return false;
+        }
+        Rook rookOnCorner = (Rook) pieceOnCorner;
+        if(rookOnCorner.getHasMoved()){
+            return false;
+        }
+        return true;
+    }
+
     private ArrayList<Move> getKingLegalMoves(){
         ArrayList<Move> moves = new ArrayList<>();
         int[] directions = new int[]{1,0,-1};
@@ -186,7 +224,7 @@ public class MoveValidator {
                 }
                 if(inBounds(move.getSource().getXOnBoard()+ directions[i],
                             move.getSource().getYOnBoard()+directions[j])){
-                    squareChecked = board[move.getSource().getXOnBoard()+ directions[i]]
+                    squareChecked = Board.board[move.getSource().getXOnBoard()+ directions[i]]
                                          [move.getSource().getYOnBoard()+directions[j]];
                     if(squareChecked.getPieceOccupying() != null &&
                             squareChecked.getPieceOccupying().getPieceColor() == move.getTurn()){
@@ -198,7 +236,6 @@ public class MoveValidator {
         }
         return moves;
     }
-
     private ArrayList<Move> getListOfPossibleMoves(char pieceType){
         ArrayList<Move> movesForPiece=null;
         if(move.getSource().getPieceOccupying().getPieceType() == 'p'){
@@ -254,8 +291,8 @@ public class MoveValidator {
         Color originalColor;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                originalColor = board[i][j].getSquareColor()? Square.COLOR_OF_FIRST_SIDE: Square.COLOR_OF_SECOND_SIDE;
-                board[i][j].setBackground(originalColor);
+                originalColor = Board.board[i][j].getSquareColor()? Square.COLOR_OF_FIRST_SIDE: Square.COLOR_OF_SECOND_SIDE;
+                Board.board[i][j].setBackground(originalColor);
             }
         }
     }

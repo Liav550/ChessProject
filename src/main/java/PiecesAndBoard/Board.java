@@ -9,14 +9,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 public class Board extends JFrame implements MouseListener{
-    private Square[][] board; // representing the view of the board
+    public static final Square[][] board = new Square[8][8]; // representing the view of the board
     private Square sourceSquare = null; // this is for saving the source of the piece we want to move
     private boolean colorToPlay = true;
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
     public Board(){
-        board = new Square[8][8]; // initializing the body of the board
-
         // setting up the frame's properties
         setTitle("Game on! ");
         setResizable(false);
@@ -30,7 +28,7 @@ public class Board extends JFrame implements MouseListener{
         boolean color;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                color = (i+j)%2 == 0; // the color of each square depends on the sum of it's indexes divided by 2.
+                color = (i+j)%2 == 0; // the color of each square depends on the sum of the indexes divided by 2.
                 board[i][j] = new Square(color, i,j);
                 board[i][j].addMouseListener(this); // adding a mouse listener for each square
                 add(board[i][j]); // adding the square to the board
@@ -79,13 +77,13 @@ public class Board extends JFrame implements MouseListener{
                 sourceSquare = null;
                 return;
             }
-            MoveValidator validator = new MoveValidator(board, new Move(sourceSquare,board[0][0],colorToPlay));
+            MoveValidator validator = new MoveValidator(new Move(sourceSquare,board[0][0],colorToPlay));
             validator.highlightPossibleMoves();
         }
         else{
             Square destinationSquare = (Square) e.getSource();
             Move move = new Move(sourceSquare,destinationSquare, colorToPlay);
-            MoveValidator moveValidator = new MoveValidator(board,move);
+            MoveValidator moveValidator = new MoveValidator(move);
             if(moveValidator.isLegalMove()){
                 move.makeMove();
                 colorToPlay = !colorToPlay;

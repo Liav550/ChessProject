@@ -1,5 +1,7 @@
 package moveValidation;
 
+import PiecesAndBoard.Board;
+import PiecesAndBoard.Pawn;
 import PiecesAndBoard.Piece;
 import PiecesAndBoard.Square;
 
@@ -11,35 +13,22 @@ public class Move {
     private Square destination;
     private boolean turn;
     private Piece pieceTaken;
-
-    public Move(Square from, Square to, boolean turn){
-        this.source = from;
-        this.destination = to;
+    public Move(Square source, Square destination, boolean turn){
+        this.source = source;
+        this.destination = destination;
         this.turn = turn;
     }
-
     public Square getSource() {
         return source;
     }
-
-    public void setFrom(Square from) {
-        this.source = from;
-    }
-
     public Square getDestination() {
         return destination;
-    }
-    public void setTo(Square to) {
-        this.destination = to;
     }
     public boolean getTurn() {
         return turn;
     }
-    public void setTurn(boolean turn) {
-        this.turn = turn;
-    }
 
-    public void makeMove(){
+    public void makeMove() {
         Piece save = source.getPieceOccupying();
         this.pieceTaken = destination.getPieceOccupying();
         destination.setPieceOccupying(save);
@@ -50,7 +39,6 @@ public class Move {
         source.setPieceOccupying(save);
         destination.setPieceOccupying(pieceTaken);
     }
-
     public boolean equalTo(Move other){
         return (this.source == other.source && this.destination == other.destination);
     }

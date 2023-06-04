@@ -1,22 +1,23 @@
 package moveValidation;
 
+import PiecesAndBoard.Board;
 import PiecesAndBoard.Piece;
 import PiecesAndBoard.Square;
+
+import java.util.Base64;
 
 public class CheckValidator {
     private Square kingPosition;
     private boolean turn;
-    private Square[][] board;
-    public CheckValidator(boolean turn, Square[][] board){
+    public CheckValidator(boolean turn){
         this.turn = turn;
-        this.board = board;
         Piece pieceOnSquare;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                pieceOnSquare = board[i][j].getPieceOccupying();
+                pieceOnSquare = Board.board[i][j].getPieceOccupying();
                 if(pieceOnSquare != null && pieceOnSquare.getPieceType() == 'k'
                         && turn == pieceOnSquare.getPieceColor()){
-                    kingPosition = board[i][j];
+                    kingPosition = Board.board[i][j];
                     return;
                 }
             }
@@ -35,7 +36,7 @@ public class CheckValidator {
         int currentX = kingPosition.getXOnBoard() + advanceX;
         int currentY = kingPosition.getYOnBoard() + advanceY;
         while(currentX>=0 && currentX<8 && currentY >= 0 && currentY<8){
-            start = board[currentX][currentY];
+            start = Board.board[currentX][currentY];
             pieceOnSquare = start.getPieceOccupying();
             if(pieceOnSquare== null){
                 currentX+= advanceX;
@@ -72,11 +73,11 @@ public class CheckValidator {
         if(x<0 || x>7 || y<0 || y>7){
             return false;
         }
-        if(board[x][y].getPieceOccupying() == null){
+        if(Board.board[x][y].getPieceOccupying() == null){
             return false;
         }
-        if(board[x][y].getPieceOccupying().getPieceType() == 'n' &&
-        board[x][y].getPieceOccupying().getPieceColor() != turn){
+        if(Board.board[x][y].getPieceOccupying().getPieceType() == 'n' &&
+        Board.board[x][y].getPieceOccupying().getPieceColor() != turn){
             return true;
         }
         return false;
@@ -105,13 +106,13 @@ public class CheckValidator {
         Piece pieceOnSquare;
         if(turn && yKing >= 2){
             if(xKing != 7){
-                pieceOnSquare = board[xKing+1][yKing-1].getPieceOccupying();
+                pieceOnSquare = Board.board[xKing+1][yKing-1].getPieceOccupying();
                 if(pieceOnSquare != null && pieceOnSquare.getPieceType() == 'p' && !pieceOnSquare.getPieceColor()){
                     return true;
                 }
             }
             if(xKing != 0){
-                pieceOnSquare = board[xKing-1][yKing-1].getPieceOccupying();
+                pieceOnSquare = Board.board[xKing-1][yKing-1].getPieceOccupying();
                 if(pieceOnSquare != null && pieceOnSquare.getPieceType() == 'p' && !pieceOnSquare.getPieceColor()){
                     return true;
                 }
@@ -119,13 +120,13 @@ public class CheckValidator {
         }
         else if(!turn && yKing <= 5){
             if(xKing != 7){
-                pieceOnSquare = board[xKing-1][yKing+1].getPieceOccupying();
+                pieceOnSquare = Board.board[xKing-1][yKing+1].getPieceOccupying();
                 if(pieceOnSquare != null && pieceOnSquare.getPieceType() == 'p' && pieceOnSquare.getPieceColor()){
                     return true;
                 }
             }
             if(xKing != 0){
-                pieceOnSquare = board[xKing+1][yKing+1].getPieceOccupying();
+                pieceOnSquare = Board.board[xKing+1][yKing+1].getPieceOccupying();
                 if(pieceOnSquare != null && pieceOnSquare.getPieceType() == 'p' && pieceOnSquare.getPieceColor()){
                     return true;
                 }
@@ -148,8 +149,8 @@ public class CheckValidator {
                 if(xKing>7 || xKing<0 || yKing<0|| yKing>7){
                     break;
                 }
-                if(board[xKing][yKing].getPieceOccupying() != null &&
-                board[xKing][yKing].getPieceOccupying().getPieceType() == 'k' ){
+                if(Board.board[xKing][yKing].getPieceOccupying() != null &&
+                Board.board[xKing][yKing].getPieceOccupying().getPieceType() == 'k' ){
                     return true;
                 }
                 xKing = kingPosition.getXOnBoard();
