@@ -7,83 +7,93 @@ import java.util.ArrayList;
 
 public class MoveValidator {
     private Move move;
-    public MoveValidator(Move move){
+
+    public MoveValidator(Move move) {
         this.move = move;
     }
 
-
-    private boolean inBounds(int x, int y){
-        return  x>=0 && x<=7 && y>=0 && y<=7;
+    private boolean inBounds(int x, int y) {
+        return x >= 0 && x <= 7 && y >= 0 && y <= 7;
     }
 
-    private boolean isMoveInList(ArrayList<Move> moves){
-        if(moves == null){
+    private boolean isMoveInList(ArrayList<Move> moves) {
+        if (moves == null) {
             return false;
         }
-        for (Move m: moves) {
-            if(move.equalTo(m)){
+        for (Move m : moves) {
+            if (move.equalTo(m)) {
+                if (m.getMoveType() == MoveType.CASTLE) {
+                    move.setMoveType(MoveType.CASTLE);
+                }
+                else if (m.getMoveType() == MoveType.EN_PASSENT) {
+                    move.setMoveType(MoveType.EN_PASSENT);
+                }
                 return true;
             }
         }
         return false;
     }
-    public boolean isAbleToMove(){
+
+    public boolean isAbleToMove() {
         Piece pieceOnFrom = move.getSource().getPieceOccupying();
         Piece pieceOnTo = move.getDestination().getPieceOccupying();
-        if(pieceOnFrom.getPieceColor() != move.getTurn()){
+        if (pieceOnFrom.getPieceColor() != move.getTurn()) {
             return false;
         }
-        if(pieceOnTo != null && pieceOnTo.getPieceColor() == pieceOnFrom.getPieceColor()){
+        if (pieceOnTo != null && pieceOnTo.getPieceColor() == pieceOnFrom.getPieceColor()) {
             return false;
         }
         // here we make the move, and check if it exposes a check on our king.
         // if it does, we will undo the move.
         move.makeMove();
         CheckValidator checkValidator = new CheckValidator(move.getTurn());
-        if(checkValidator.isInCheck()){
+        if (checkValidator.isInCheck()) {
             move.undoMove();
             return false;
         }
         move.undoMove();
         return true;
     }
-    private ArrayList<Move> deleteIfIllegal(ArrayList<Move> moves){
-        if(moves==null){return null;}
+
+    private ArrayList<Move> deleteIfIllegal(ArrayList<Move> moves) {
+        if (moves == null) {
+            return null;
+        }
         MoveValidator validatePossibleMoves;
         ArrayList<Move> ret = new ArrayList<>();
-        for(Move m: moves){
+        for (Move m : moves) {
             validatePossibleMoves = new MoveValidator(m);
-            if(validatePossibleMoves.isAbleToMove()){
+            if (validatePossibleMoves.isAbleToMove()) {
                 ret.add(m);
             }
         }
         return ret;
     }
 
-    private ArrayList<Move> getPawnLegalMoves(){
+    private ArrayList<Move> getPawnLegalMoves() {
         ArrayList<Move> moves = new ArrayList<>();
         Square sourceSquare = move.getSource();
         int xSource = sourceSquare.getXOnBoard();
         int ySource = sourceSquare.getYOnBoard();
-        int turnMul = move.getTurn()? -1: 1;
-        Pawn pawnOnSource = (Pawn)sourceSquare.getPieceOccupying();
-        if(Board.board[xSource][ySource+ turnMul].getPieceOccupying() == null) {
-            moves.add(new Move(sourceSquare, Board.board[xSource][ySource+ turnMul], move.getTurn()));
-            if(pawnOnSource.isInStartingPosition() && Board.board[xSource][ySource+2*turnMul].getPieceOccupying() == null){
-                Move doubleMove = new Move(sourceSquare, Board.board[xSource][ySource+2*turnMul], move.getTurn());
+        int turnMul = move.getTurn() ? -1 : 1;
+        Pawn pawnOnSource = (Pawn) sourceSquare.getPieceOccupying();
+        if (Board.board[xSource][ySource + turnMul].getPieceOccupying() == null) {
+            moves.add(new Move(sourceSquare, Board.board[xSource][ySource + turnMul], move.getTurn()));
+            if (pawnOnSource.isInStartingPosition() && Board.board[xSource][ySource + 2 * turnMul].getPieceOccupying() == null) {
+                Move doubleMove = new Move(sourceSquare, Board.board[xSource][ySource + 2 * turnMul], move.getTurn());
                 moves.add(doubleMove);
             }
         }
-        if(xSource!=7){
-            Piece diagonalPiece1 = Board.board[xSource+1][ySource+ turnMul].getPieceOccupying();
-            if(diagonalPiece1 != null && diagonalPiece1.getPieceColor() != move.getTurn()){
-                moves.add(new Move(sourceSquare,Board.board[xSource+1][ySource+ turnMul],move.getTurn()));
+        if (xSource != 7) {
+            Piece diagonalPiece1 = Board.board[xSource + 1][ySource + turnMul].getPieceOccupying();
+            if (diagonalPiece1 != null && diagonalPiece1.getPieceColor() != move.getTurn()) {
+                moves.add(new Move(sourceSquare, Board.board[xSource + 1][ySource + turnMul], move.getTurn()));
             }
         }
-        if(xSource != 0){
-            Piece diagonalPiece2 = Board.board[xSource-1][ySource+ turnMul].getPieceOccupying();
-            if(diagonalPiece2 != null && diagonalPiece2.getPieceColor() != move.getTurn()){
-                moves.add(new Move(sourceSquare,Board.board[xSource-1][ySource+ turnMul],move.getTurn()));
+        if (xSource != 0) {
+            Piece diagonalPiece2 = Board.board[xSource - 1][ySource + turnMul].getPieceOccupying();
+            if (diagonalPiece2 != null && diagonalPiece2.getPieceColor() != move.getTurn()) {
+                moves.add(new Move(sourceSquare, Board.board[xSource - 1][ySource + turnMul], move.getTurn()));
             }
         }
         return moves;
@@ -195,8 +205,8 @@ public class MoveValidator {
             return false;
         }
         oneStepToDirection.undoMove();
-        int distanceToRook = direction==1? 3: -4;
-        Piece pieceOnCorner = Board.board[xSource+distanceToRook][ySource].getPieceOccupying();
+        int xCorner = direction==1? 7: 0;
+        Piece pieceOnCorner = Board.board[xCorner][ySource].getPieceOccupying();
         if(pieceOnCorner == null){
             return false;
         }
@@ -234,6 +244,22 @@ public class MoveValidator {
                 }
             }
         }
+        Move castle;
+
+        if(isCastleLegal(1)){
+            castle = new Move(move.getSource(),
+                              Board.board[move.getSource().getXOnBoard()+2][move.getSource().getYOnBoard()],
+                              move.getTurn());
+            castle.setMoveType(MoveType.CASTLE);
+            moves.add(castle);
+        }
+        if(isCastleLegal(-1)){
+            castle = new Move(move.getSource(),
+                    Board.board[move.getSource().getXOnBoard()-2][move.getSource().getYOnBoard()],
+                    move.getTurn());
+            castle.setMoveType(MoveType.CASTLE);
+            moves.add(castle);
+        }
         return moves;
     }
     private ArrayList<Move> getListOfPossibleMoves(char pieceType){
@@ -260,9 +286,6 @@ public class MoveValidator {
         return movesForPiece;
     }
     public boolean isLegalMove() {
-        if (!isAbleToMove()) {
-            return false;
-        }
         boolean ret;
         char pieceType = move.getSource().getPieceOccupying().getPieceType();
         ArrayList<Move> movesForPiece = getListOfPossibleMoves(pieceType);

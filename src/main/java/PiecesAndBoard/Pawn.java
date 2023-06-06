@@ -14,7 +14,6 @@ public class Pawn extends Piece{
     public boolean isInStartingPosition() {
         return isInStartingPosition;
     }
-
     public void setIsInStartingPosition(boolean inStartingPosition) {
         isInStartingPosition = inStartingPosition;
     }
