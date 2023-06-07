@@ -1,7 +1,7 @@
 package PiecesAndBoard;
 
-import moveValidation.Move;
-import moveValidation.MoveValidator;
+import moves.Move;
+import moves.MoveValidator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,7 +12,9 @@ public class Board extends JFrame implements MouseListener{
     public static final Square[][] board = new Square[8][8]; // representing the view of the board
     private Square sourceSquare = null; // this is for saving the source of the piece we want to move
     private boolean colorToPlay = true;
-    public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    public static final String STARTING_POSITION_WHITE_FRONT = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    // public static final String STARTING_POSITION_BLACK_FRONT = "RNBKQBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbkqbnr";
+    // in the future...
 
     public Board(){
         // setting up the frame's properties
@@ -34,7 +36,7 @@ public class Board extends JFrame implements MouseListener{
                 add(board[i][j]); // adding the square to the board
             }
         }
-        setBoardByFEN(STARTING_POSITION); // setting the starting position by using FEN
+        setBoardByFEN(STARTING_POSITION_WHITE_FRONT); // setting the starting position by using FEN
         setVisible(true); // show the board on the screen
     }
 
@@ -86,6 +88,8 @@ public class Board extends JFrame implements MouseListener{
             MoveValidator moveValidator = new MoveValidator(move);
             if(moveValidator.isLegalMove()){
                 move.makeMove();
+                System.out.println(move.getMoveType());
+                updatePawnTurnsSinceDoubleMove();
                 colorToPlay = !colorToPlay;
             }
             moveValidator.turnOffHighlight();
@@ -114,5 +118,23 @@ public class Board extends JFrame implements MouseListener{
     @Override
     public void mouseExited(MouseEvent e) {
 
+    }
+    public void updatePawnTurnsSinceDoubleMove(){
+        Piece pieceOnSquare;
+        Pawn pawnOnSquare;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                pieceOnSquare = board[i][j].getPieceOccupying();
+                if(pieceOnSquare == null){
+                    continue;
+                }
+                if(pieceOnSquare.getPieceType() == 'p' && pieceOnSquare.getPieceColor() == colorToPlay){
+                    pawnOnSquare = (Pawn) pieceOnSquare;
+                    if(pawnOnSquare.hasDoubleMoved()){
+                        pawnOnSquare.incrementTurnsSinceDoubleMove();
+                    }
+                }
+            }
+        }
     }
 }

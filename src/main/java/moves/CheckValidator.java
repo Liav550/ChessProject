@@ -1,10 +1,8 @@
-package moveValidation;
+package moves;
 
 import PiecesAndBoard.Board;
 import PiecesAndBoard.Piece;
 import PiecesAndBoard.Square;
-
-import java.util.Base64;
 
 public class CheckValidator {
     private Square kingPosition;

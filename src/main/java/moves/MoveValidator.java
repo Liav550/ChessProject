@@ -1,4 +1,4 @@
-package moveValidation;
+package moves;
 
 import PiecesAndBoard.*;
 
@@ -20,6 +20,7 @@ public class MoveValidator {
         if (moves == null) {
             return false;
         }
+        boolean ret= false;
         for (Move m : moves) {
             if (move.equalTo(m)) {
                 if (m.getMoveType() == MoveType.CASTLE) {
@@ -28,10 +29,15 @@ public class MoveValidator {
                 else if (m.getMoveType() == MoveType.EN_PASSENT) {
                     move.setMoveType(MoveType.EN_PASSENT);
                 }
-                return true;
+                else if(m.getMoveType() == MoveType.DOUBLE_MOVE){
+                    move.setMoveType(MoveType.DOUBLE_MOVE);
+                    ((Pawn)move.getSource().getPieceOccupying()).setHasDoubleMoved(true);
+                }
+                ret = true;
+                break;
             }
         }
-        return false;
+        return ret;
     }
 
     public boolean isAbleToMove() {
@@ -70,6 +76,31 @@ public class MoveValidator {
         return ret;
     }
 
+    private boolean isEnPassentLegal(int direction){
+        int perspective = move.getTurn()? -1: 1;
+        if(!inBounds(move.getSource().getXOnBoard()+direction, move.getSource().getYOnBoard()+perspective)){
+            return false;
+        }
+        Square squareOfEnemyPawn = Board.board[move.getSource().getXOnBoard() + direction][move.getSource().getYOnBoard()];
+        if(squareOfEnemyPawn.getPieceOccupying() == null){
+            return false;
+        }
+        if(squareOfEnemyPawn.getPieceOccupying().getPieceColor() == move.getTurn() ||
+           squareOfEnemyPawn.getPieceOccupying().getPieceType() != 'p'){
+            return false;
+        }
+        Pawn enemyPawn = (Pawn) squareOfEnemyPawn.getPieceOccupying();
+        if(enemyPawn.getTurnsSinceDoubleMove() != 1){
+            return false;
+        }
+
+        Square takeSpot = Board.board[move.getSource().getXOnBoard() + direction][move.getSource().getYOnBoard()+perspective];
+        if(takeSpot.getPieceOccupying() != null){
+            return false;
+        }
+        return true;
+    }
+
     private ArrayList<Move> getPawnLegalMoves() {
         ArrayList<Move> moves = new ArrayList<>();
         Square sourceSquare = move.getSource();
@@ -81,6 +112,7 @@ public class MoveValidator {
             moves.add(new Move(sourceSquare, Board.board[xSource][ySource + turnMul], move.getTurn()));
             if (pawnOnSource.isInStartingPosition() && Board.board[xSource][ySource + 2 * turnMul].getPieceOccupying() == null) {
                 Move doubleMove = new Move(sourceSquare, Board.board[xSource][ySource + 2 * turnMul], move.getTurn());
+                doubleMove.setMoveType(MoveType.DOUBLE_MOVE);
                 moves.add(doubleMove);
             }
         }
@@ -95,6 +127,21 @@ public class MoveValidator {
             if (diagonalPiece2 != null && diagonalPiece2.getPieceColor() != move.getTurn()) {
                 moves.add(new Move(sourceSquare, Board.board[xSource - 1][ySource + turnMul], move.getTurn()));
             }
+        }
+        Move enPassent;
+        if(isEnPassentLegal(1)){
+            enPassent = new Move(move.getSource(),
+                                 Board.board[move.getSource().getXOnBoard() + 1][move.getSource().getYOnBoard()+turnMul],
+                    move.getTurn());
+            enPassent.setMoveType(MoveType.EN_PASSENT);
+            moves.add(enPassent);
+        }
+        else if(isEnPassentLegal(-1)){
+            enPassent = new Move(move.getSource(),
+                    Board.board[move.getSource().getXOnBoard() - 1][move.getSource().getYOnBoard()+turnMul],
+                    move.getTurn());
+            enPassent.setMoveType(MoveType.EN_PASSENT);
+            moves.add(enPassent);
         }
         return moves;
     }
