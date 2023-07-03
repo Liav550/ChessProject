@@ -20,10 +20,10 @@ public class Board extends JFrame implements MouseListener{
         // setting up the frame's properties
         setTitle("Game on! ");
         setResizable(false);
-        setSize(800,800);
+        setSize(1000,800);
         setLayout(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        getContentPane().setBackground(new Color(44, 35, 35));
+        getContentPane().setBackground(new Color(0, 0, 0));
         setLocationRelativeTo(null);
 
         // building the squares
@@ -36,13 +36,19 @@ public class Board extends JFrame implements MouseListener{
                 add(board[i][j]); // adding the square to the board
             }
         }
+        JButton clearButton = new JButton();
+        clearButton.setName("Clear");
+        clearButton.setText("Clear");
+        clearButton.setBounds(800,400,130, 80);
+        clearButton.setBackground(new Color(255, 224, 22));
+        clearButton.addMouseListener(this);
+        add(clearButton);
+
         setBoardByFEN(STARTING_POSITION_WHITE_FRONT); // setting the starting position by using FEN
         setVisible(true); // show the board on the screen
     }
-
-
     // This method loads the board according to a FEN string
-    public void setBoardByFEN(String fen){
+    private void setBoardByFEN(String fen){
         int len = fen.length(); // the length of the FEN string
         int currentX = 0; // the x dimension of the current square we are iterating through according to the FEN string
         int currentY = 0; // the y dimension of the current square we are iterating through according to the FEN string
@@ -67,8 +73,20 @@ public class Board extends JFrame implements MouseListener{
             }
         }
     }
+    private void clearBoard(){
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                board[i][j].setPieceOccupying(null);
+            }
+        }
+    }
     @Override
     public void mouseClicked(MouseEvent e) {
+        if(((JButton)e.getSource()).getName() != null && ((JButton)e.getSource()).getName().equals("Clear")){
+            dispose();
+            Board b = new Board();
+            return;
+        }
         if(sourceSquare == null){
             sourceSquare = (Square) e.getSource();
             if(sourceSquare.getPieceOccupying()==null){
@@ -119,7 +137,7 @@ public class Board extends JFrame implements MouseListener{
     public void mouseExited(MouseEvent e) {
 
     }
-    public void updatePawnTurnsSinceDoubleMove(){
+    private void updatePawnTurnsSinceDoubleMove(){
         Piece pieceOnSquare;
         Pawn pawnOnSquare;
         for (int i = 0; i < 8; i++) {

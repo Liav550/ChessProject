@@ -11,10 +11,10 @@ public class Square extends JButton{
     private Piece pieceOccupying = null; // the piece that is currently on this square
     private int xOnBoard; // the x location of the square on the board (x between 0 and 8)
     private int yOnBoard; // the y location of the square on the board (y between 0 and 8)
-    public static final int SQUARE_SIZE = 90; // the size of all squares
-    public static final Color COLOR_OF_SECOND_SIDE = new Color(103,51,20); // the first color of all squares
-    public static final Color COLOR_OF_FIRST_SIDE = new Color(249,172,113); // the second color of all squares
-    public static final Color COLOR_OF_HIGHLIGHT = new Color(243, 221, 76); // the color of a highlighted square
+    public static final int SQUARE_SIZE = 85; // the size of all squares
+    public static final Color COLOR_OF_SECOND_SIDE = new Color(169, 61, 1); // the first color of all squares
+    public static final Color COLOR_OF_FIRST_SIDE = new Color(255, 220, 195); // the second color of all squares
+    public static final Color COLOR_OF_HIGHLIGHT = new Color(255, 98, 98); // the color of a highlighted square
     public Square(boolean squareColor, int xOnBoard, int yOnBoard){
         this.squareColor = squareColor; // assigning
         this.setBackground(squareColor? COLOR_OF_FIRST_SIDE: COLOR_OF_SECOND_SIDE); // setting the square's color

@@ -20,19 +20,10 @@ public abstract class Piece extends JLabel{
         return pieceColor;
     }
 
-    public void setPieceColor(boolean pieceColor) {
-        this.pieceColor = pieceColor;
-    }
-
     public char getPieceType() {
         return pieceType;
     }
-
-    public void setPieceType(char pieceType) {
-        this.pieceType = pieceType;
-    }
-
-    public ImageIcon getPieceIcon() {
+    public ImageIcon getPieceImage(){
         return pieceImage;
     }
 }

@@ -11,8 +11,6 @@ public class Pawn extends Piece{
                 new ImageIcon("C:\\JavaProjects\\ChessProject\\src\\main\\resources\\whitePawn.png")
                 : new ImageIcon("C:\\JavaProjects\\ChessProject\\src\\main\\resources\\blackPawn.png"));
         isInStartingPosition = true;
-        turnsSinceDoubleMove = 0;
-        hasDoubleMoved = false;
     }
 
     public boolean isInStartingPosition() {

@@ -100,48 +100,50 @@ public class MoveValidator {
         }
         return true;
     }
-
     private ArrayList<Move> getPawnLegalMoves() {
         ArrayList<Move> moves = new ArrayList<>();
         Square sourceSquare = move.getSource();
         int xSource = sourceSquare.getXOnBoard();
         int ySource = sourceSquare.getYOnBoard();
         int turnMul = move.getTurn() ? -1 : 1;
+        Move moveToAdd;
         Pawn pawnOnSource = (Pawn) sourceSquare.getPieceOccupying();
         if (Board.board[xSource][ySource + turnMul].getPieceOccupying() == null) {
-            moves.add(new Move(sourceSquare, Board.board[xSource][ySource + turnMul], move.getTurn()));
+            moveToAdd = new Move(sourceSquare, Board.board[xSource][ySource + turnMul], move.getTurn());
+            moves.add(moveToAdd);
             if (pawnOnSource.isInStartingPosition() && Board.board[xSource][ySource + 2 * turnMul].getPieceOccupying() == null) {
-                Move doubleMove = new Move(sourceSquare, Board.board[xSource][ySource + 2 * turnMul], move.getTurn());
-                doubleMove.setMoveType(MoveType.DOUBLE_MOVE);
-                moves.add(doubleMove);
+                moveToAdd = new Move(sourceSquare, Board.board[xSource][ySource + 2 * turnMul], move.getTurn());
+                moveToAdd.setMoveType(MoveType.DOUBLE_MOVE);
+                moves.add(moveToAdd);
             }
         }
         if (xSource != 7) {
             Piece diagonalPiece1 = Board.board[xSource + 1][ySource + turnMul].getPieceOccupying();
             if (diagonalPiece1 != null && diagonalPiece1.getPieceColor() != move.getTurn()) {
-                moves.add(new Move(sourceSquare, Board.board[xSource + 1][ySource + turnMul], move.getTurn()));
+                moveToAdd = new Move(sourceSquare, Board.board[xSource + 1][ySource + turnMul], move.getTurn());
+                moves.add(moveToAdd);
             }
         }
         if (xSource != 0) {
             Piece diagonalPiece2 = Board.board[xSource - 1][ySource + turnMul].getPieceOccupying();
             if (diagonalPiece2 != null && diagonalPiece2.getPieceColor() != move.getTurn()) {
-                moves.add(new Move(sourceSquare, Board.board[xSource - 1][ySource + turnMul], move.getTurn()));
+                moveToAdd = new Move(sourceSquare, Board.board[xSource - 1][ySource + turnMul], move.getTurn());
+                moves.add(moveToAdd);
             }
         }
-        Move enPassent;
         if(isEnPassentLegal(1)){
-            enPassent = new Move(move.getSource(),
+            moveToAdd = new Move(move.getSource(),
                                  Board.board[move.getSource().getXOnBoard() + 1][move.getSource().getYOnBoard()+turnMul],
                     move.getTurn());
-            enPassent.setMoveType(MoveType.EN_PASSENT);
-            moves.add(enPassent);
+            moveToAdd.setMoveType(MoveType.EN_PASSENT);
+            moves.add(moveToAdd);
         }
         else if(isEnPassentLegal(-1)){
-            enPassent = new Move(move.getSource(),
+            moveToAdd = new Move(move.getSource(),
                     Board.board[move.getSource().getXOnBoard() - 1][move.getSource().getYOnBoard()+turnMul],
                     move.getTurn());
-            enPassent.setMoveType(MoveType.EN_PASSENT);
-            moves.add(enPassent);
+            moveToAdd.setMoveType(MoveType.EN_PASSENT);
+            moves.add(moveToAdd);
         }
         return moves;
     }
@@ -330,6 +332,7 @@ public class MoveValidator {
             movesForPiece = getQueenLegalMoves();
         }
         movesForPiece = deleteIfIllegal(movesForPiece);
+        isMoveInList(movesForPiece);
         return movesForPiece;
     }
     public boolean isLegalMove() {

@@ -5,12 +5,12 @@ import PiecesAndBoard.Piece;
 import PiecesAndBoard.Square;
 
 public class Move {
-    private Square source; // where the piece is from
-    private Square destination; // where the piece is going to go
-    private boolean turn; // the side that makes that move
-    private Piece pieceTaken; // save the piece that has been taken (if at all) as a result of this move
-    private MoveType moveType; // the type of the move (Castle, En-Passent etc)
-    public Move(Square source, Square destination, boolean turn){ // Constructor
+    private Square source;
+    private Square destination;
+    private boolean turn;
+    private Piece pieceTaken;
+    private MoveType moveType;
+    public Move(Square source, Square destination, boolean turn){
         this.source = source;
         this.destination = destination;
         this.turn = turn;
@@ -30,35 +30,44 @@ public class Move {
         this.moveType = moveType;
     }
 
-    public void makeMove() { // Physically making the move on the board
+    // this function physically executes a move on the board.
+    // the way the move is executed depends on the move's type. that's why
+    // the if statements are for.
+    public void makeMove() {
         if(moveType == MoveType.NORMAL || moveType == MoveType.DOUBLE_MOVE){
             makeNormalMove();
         }
         else if(moveType == MoveType.CASTLE){
             castle();
         }
-        else{
+        else if(moveType == MoveType.EN_PASSENT) {
             enPassent();
         }
     }
+
+    public boolean isPromotingMove(){
+        if(turn && destination.getYOnBoard()== 0){
+            return true;
+        }
+        if(!turn && destination.getYOnBoard() == 7){
+            return true;
+        }
+        return false;
+    }
+
     private void makeNormalMove(){
-        Piece save = source.getPieceOccupying(); // saving the piece on source square, because we need to save the
-                                                 // piece for when we move it from the source square.
+        Piece save = source.getPieceOccupying();
 
-        if(destination.getPieceOccupying()!=null){ // if a piece has been captured as a result of the move, we need to
-                                                   // save it, because if the move is illegal we will need to undo it.
-
+        if(destination.getPieceOccupying()!=null){
             this.pieceTaken = destination.getPieceOccupying();
         }
-        destination.setPieceOccupying(save); // transfer the piece from the source to the destination
-        source.setPieceOccupying(null); // clearing the source square
+        destination.setPieceOccupying(save);
+        source.setPieceOccupying(null);
     }
     private void castle(){
-        makeNormalMove(); // that is for the movement of the king
-
-        int xCorner = destination.getXOnBoard() > source.getXOnBoard()? 7:0; // getting the corner the rook is at.
-        int xMovement = destination.getXOnBoard()>source.getXOnBoard()? 1:-1; // this is so we know where the rook has
-                                                                              // to be in relation to the king.
+        makeNormalMove();
+        int xCorner = destination.getXOnBoard() > source.getXOnBoard()? 7:0;
+        int xMovement = destination.getXOnBoard()>source.getXOnBoard()? 1:-1;
         Move rookMovement = new Move(Board.board[xCorner][source.getYOnBoard()],
                                      Board.board[source.getXOnBoard()+xMovement][source.getYOnBoard()],
                                      turn);

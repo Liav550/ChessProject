@@ -98,7 +98,7 @@ public class CheckValidator {
         return false;
     }
 
-    private boolean isPawnCheck(){
+    private boolean isPawnCheck(){ // !turn | [1,2]
         int xKing = kingPosition.getXOnBoard();
         int yKing = kingPosition.getYOnBoard();
         Piece pieceOnSquare;
@@ -118,13 +118,13 @@ public class CheckValidator {
         }
         else if(!turn && yKing <= 5){
             if(xKing != 7){
-                pieceOnSquare = Board.board[xKing-1][yKing+1].getPieceOccupying();
+                pieceOnSquare = Board.board[xKing+1][yKing+1].getPieceOccupying();
                 if(pieceOnSquare != null && pieceOnSquare.getPieceType() == 'p' && pieceOnSquare.getPieceColor()){
                     return true;
                 }
             }
             if(xKing != 0){
-                pieceOnSquare = Board.board[xKing+1][yKing+1].getPieceOccupying();
+                pieceOnSquare = Board.board[xKing-1][yKing+1].getPieceOccupying();
                 if(pieceOnSquare != null && pieceOnSquare.getPieceType() == 'p' && pieceOnSquare.getPieceColor()){
                     return true;
                 }
